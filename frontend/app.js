@@ -335,15 +335,15 @@ function generateMockResults() {
   const ssim = Math.min(100, Math.max(20, base + (Math.random() - 0.5) * 20));
   const edge = Math.min(100, Math.max(30, base + (Math.random() - 0.5) * 15));
   const spatial_color = Math.min(100, Math.max(25, base + (Math.random() - 0.5) * 25));
-  const phash = Math.min(100, Math.max(40, base + (Math.random() - 0.5) * 10));
+  const dhash = Math.min(100, Math.max(40, base + (Math.random() - 0.5) * 10));
   const dominant_color = Math.min(100, Math.max(30, base + (Math.random() - 0.5) * 20));
-  const combined = Math.round((0.30 * ssim + 0.25 * edge + 0.25 * spatial_color + 0.10 * phash + 0.10 * dominant_color) * 10) / 10;
+  const combined = Math.round((0.35 * ssim + 0.25 * edge + 0.20 * spatial_color + 0.10 * dhash + 0.10 * dominant_color) * 10) / 10;
 
   return {
     ssim: Math.round(ssim * 10) / 10,
     edge: Math.round(edge * 10) / 10,
     spatial_color: Math.round(spatial_color * 10) / 10,
-    phash: Math.round(phash * 10) / 10,
+    dhash: Math.round(dhash * 10) / 10,
     dominant_color: Math.round(dominant_color * 10) / 10,
     combined,
     insight: generateInsight(ssim, edge, spatial_color, combined),
@@ -439,7 +439,7 @@ btnCompare.addEventListener('click', startCompare);
    Display Results
    ======================================== */
 function displayResults(results) {
-  const { ssim, edge, spatial_color, phash, dominant_color, combined } = results;
+  const { ssim, edge, spatial_color, dhash, dominant_color, combined } = results;
 
   // Ring progress
   const circumference = 2 * Math.PI * 52;
@@ -781,7 +781,7 @@ btnExport.addEventListener('click', () => {
   // Sub-scores
   const scores = [
     { name: '结构分 (SSIM)', value: r.ssim },
-    { name: '布局分 (Edge)', value: r.edge || r.dhash },
+    { name: '布局分 (dHash)', value: r.dhash || r.edge },
     { name: '颜色分 (Spatial)', value: r.spatial_color || r.hist },
   ];
 

@@ -1,5 +1,4 @@
 .pytest_cache
 venv/
 test-images/
-*.jpeg
 .DS_Store
