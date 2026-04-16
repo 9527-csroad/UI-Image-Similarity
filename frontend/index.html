@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Image Compare — 图像相似度对比</title>
+  <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="2" width="8" height="14" rx="1"/>
+          <rect x="14" y="2" width="8" height="14" rx="1"/>
+          <path d="M6 8h0M18 8h0"/>
+          <circle cx="6" cy="11" r="1"/>
+          <circle cx="18" cy="11" r="1"/>
+        </svg>
+        <span class="logo-text">UI Image Compare</span>
+      </div>
+      <p class="header-desc">上传两张 UI 截图，快速获取相似度评分与差异分析。</p>
+    </div>
+  </header>
+
+  <!-- Error Banner -->
+  <div class="error-banner" id="errorBanner" hidden>
+    <span class="error-icon">&#9888;</span>
+    <span class="error-text" id="errorText"></span>
+    <button class="error-close" id="errorClose">&times;</button>
+  </div>
+
+  <main class="main">
+
+    <!-- Step Indicator -->
+    <div class="steps" id="steps">
+      <div class="step active" data-step="1">
+        <span class="step-num">1</span>
+        <span class="step-label">上传图片</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="2">
+        <span class="step-num">2</span>
+        <span class="step-label">对比计算</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" data-step="3">
+        <span class="step-num">3</span>
+        <span class="step-label">查看结果</span>
+      </div>
+    </div>
+
+    <!-- Upload Section -->
+    <section class="upload-section" id="uploadSection">
+      <div class="upload-zones">
+        <div class="upload-zone" id="zoneA" data-zone="A">
+          <input type="file" id="fileA" accept="image/png,image/jpeg,image/webp,image/bmp" hidden>
+          <div class="upload-placeholder" id="placeholderA">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="upload-title">拖拽或点击上传</p>
+            <p class="upload-hint">支持 PNG / JPG / WebP / BMP，最大 10 MB</p>
+          </div>
+          <div class="upload-preview" id="previewA" hidden>
+            <img id="thumbA" alt="图 A 预览">
+            <div class="preview-info" id="infoA"></div>
+            <button class="btn-replace" data-target="A" title="更换图片">&#9998; 更换</button>
+          </div>
+          <div class="upload-label">图 A</div>
+        </div>
+        <div class="upload-zone" id="zoneB" data-zone="B">
+          <input type="file" id="fileB" accept="image/png,image/jpeg,image/webp,image/bmp" hidden>
+          <div class="upload-placeholder" id="placeholderB">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="upload-title">拖拽或点击上传</p>
+            <p class="upload-hint">支持 PNG / JPG / WebP / BMP，最大 10 MB</p>
+          </div>
+          <div class="upload-preview" id="previewB" hidden>
+            <img id="thumbB" alt="图 B 预览">
+            <div class="preview-info" id="infoB"></div>
+            <button class="btn-replace" data-target="B" title="更换图片">&#9998; 更换</button>
+          </div>
+          <div class="upload-label">图 B</div>
+        </div>
+      </div>
+
+      <!-- Loading Progress -->
+      <div class="loading-text" id="loadingText" hidden></div>
+
+      <button class="btn-primary" id="btnCompare" disabled>开始对比</button>
+    </section>
+
+    <!-- Results Section (hidden initially) -->
+    <section class="results-section" id="resultsSection" hidden>
+
+      <!-- Score Card -->
+      <div class="score-card" id="scoreCard">
+        <div class="score-main">
+          <div class="ring-progress" id="ringProgress">
+            <svg viewBox="0 0 120 120" width="120" height="120">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#E5E7EB" stroke-width="8"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke-width="8"
+                      stroke-linecap="round"
+                      transform="rotate(-90 60 60)"
+                      id="ringCircle"/>
+            </svg>
+            <div class="ring-value" id="ringValue">--</div>
+          </div>
+          <div class="score-label" id="scoreLabel">
+            <span class="label-dot"></span>
+            <span class="label-text">--</span>
+          </div>
+        </div>
+        <div class="score-details">
+          <div class="score-row">
+            <span class="score-name">结构分 <em>SSIM</em></span>
+            <div class="score-bar"><div class="score-bar-fill" id="barSSIM"></div></div>
+            <span class="score-pct" id="pctSSIM">--%</span>
+          </div>
+          <div class="score-row">
+            <span class="score-name">布局分 <em>dHash</em></span>
+            <div class="score-bar"><div class="score-bar-fill" id="barDHash"></div></div>
+            <span class="score-pct" id="pctDHash">--%</span>
+          </div>
+          <div class="score-row">
+            <span class="score-name">颜色分 <em>直方图</em></span>
+            <div class="score-bar"><div class="score-bar-fill" id="barHist"></div></div>
+            <span class="score-pct" id="pctHist">--%</span>
+          </div>
+          <div class="score-insight" id="scoreInsight">
+            <span class="insight-icon">&#128161;</span>
+            <span class="insight-text" id="insightText"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison View -->
+      <div class="comparison-section">
+        <div class="tabs" id="tabs">
+          <button class="tab active" data-mode="sidebyside">并排对比</button>
+          <button class="tab" data-mode="slider">Slider 对比</button>
+          <button class="tab" data-mode="heatmap">差异热力图</button>
+        </div>
+        <div class="comparison-view" id="comparisonView">
+          <!-- Side-by-side -->
+          <div class="view-panel active" id="panelSideBySide">
+            <div class="side-images">
+              <div class="side-image">
+                <img id="sideImgA" alt="图 A">
+                <span class="side-label" id="sideLabelA"></span>
+              </div>
+              <div class="side-image">
+                <img id="sideImgB" alt="图 B">
+                <span class="side-label" id="sideLabelB"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Slider -->
+          <div class="view-panel" id="panelSlider">
+            <div class="slider-container" id="sliderContainer">
+              <img id="sliderBase" alt="底层图 A">
+              <div class="slider-overlay" id="sliderOverlay">
+                <img id="sliderTop" alt="上层图 B">
+              </div>
+              <div class="slider-handle" id="sliderHandle">
+                <div class="slider-line"></div>
+                <div class="slider-grip">
+                  <span>&#8249;</span>
+                  <span>&#8250;</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Heatmap -->
+          <div class="view-panel" id="panelHeatmap">
+            <div class="heatmap-wrapper" id="heatmapWrapper">
+              <img id="heatmapBase" alt="图 A 底图">
+              <canvas id="heatmapCanvas"></canvas>
+            </div>
+            <div class="heatmap-controls">
+              <label>透明度：<input type="range" id="heatmapOpacity" min="0" max="100" value="60"> <span id="opacityVal">60%</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <button class="btn-action" id="btnExport">导出 PNG</button>
+        <button class="btn-action" id="btnReset">重新对比</button>
+        <button class="btn-action" id="btnHistory">历史记录 <span id="historyCount">(0)</span></button>
+      </div>
+
+      <!-- History Panel -->
+      <div class="history-panel" id="historyPanel" hidden>
+        <div class="history-header">
+          <h3>最近对比记录</h3>
+          <button class="btn-clear" id="btnClearHistory">清除全部</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>基于 SSIM + dHash + HSV 直方图算法 &middot; UI Image Compare</p>
+  </footer>
+
+  <script src="app.js?v=2"></script>
+</body>
+</html>
